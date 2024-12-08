@@ -14,6 +14,7 @@ import {
 	FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
@@ -39,7 +40,7 @@ const RegisterDao = () => {
 			name: 'arun02580',
 			description: 'just a test description',
 			ownerWalletAddress: '0x1234',
-			contractAddress: '0x1234',
+			contractAddress: '0xC2B1fA74cA31cF4F5E115a888F0e7BFC6067F925',
 			// logo: "",
 		},
 	});
@@ -113,31 +114,15 @@ const RegisterDao = () => {
 	}
 
 	return (
-		<div>
-			<Card className="w-[90%] mx-auto">
-				<CardContent className="border h-full">
+		<div className="flex items-center justify-center h-screen -mt-[80px]">
+			<Card className="w-[90%] max-w-3xl pt-4 mx-auto border border-black">
+				<CardContent className="h-full ">
 					<Form {...form}>
 						<form
 							onSubmit={form.handleSubmit(onSubmit)}
-							className="h-full space-y-14"
+							className="h-full space-y-8"
 						>
 							<div className="grid grid-cols-2 gap-8">
-								<FormField
-									control={form.control}
-									name="email"
-									render={({ field }) => (
-										<FormItem>
-											<FormLabel>Email</FormLabel>
-											<FormControl>
-												<Input placeholder="john@email.xyz" {...field} />
-											</FormControl>
-											<FormDescription>
-												We&apos;ll send you an email to authenticate.
-											</FormDescription>
-											<FormMessage />
-										</FormItem>
-									)}
-								/>
 								<FormField
 									control={form.control}
 									name="name"
@@ -145,36 +130,25 @@ const RegisterDao = () => {
 										<FormItem>
 											<FormLabel>Name</FormLabel>
 											<FormControl>
-												<Input placeholder="john.xyz" {...field} />
+												<Input placeholder="john.xyz" {...field} className='bg-zinc-100' />
 											</FormControl>
 											<FormMessage />
 										</FormItem>
 									)}
 								/>
-								<FormField
-									control={form.control}
-									name="description"
-									render={({ field }) => (
-										<FormItem>
-											<FormLabel>Description</FormLabel>
-											<FormControl>
-												<Input placeholder="write a description" {...field} />
-											</FormControl>
-											<FormMessage />
-										</FormItem>
-									)}
-								/>
+								
 								<FormField
 									control={form.control}
 									name="logo"
 									render={({ field }) => (
 										<FormItem>
-											<FormLabel>Image</FormLabel>
+											<FormLabel>Brand Logo</FormLabel>
 											<FormControl>
 												<Input
 													type="file"
 													accept="image/*"
 													onChange={(e) => field.onChange(e.target.files?.[0])}
+													className='bg-zinc-100'
 												/>
 											</FormControl>
 											<FormMessage />
@@ -186,9 +160,9 @@ const RegisterDao = () => {
 									name="ownerWalletAddress"
 									render={({ field }) => (
 										<FormItem>
-											<FormLabel>Wallet Address</FormLabel>
+											<FormLabel>Owner Wallet Address</FormLabel>
 											<FormControl>
-												<Input placeholder="0x1234" {...field} />
+												<Input placeholder="0x1234" {...field} className='bg-zinc-100'/>
 											</FormControl>
 											<FormMessage />
 										</FormItem>
@@ -201,15 +175,30 @@ const RegisterDao = () => {
 										<FormItem>
 											<FormLabel>Contract Address</FormLabel>
 											<FormControl>
-												<Input placeholder="0x1234" {...field} />
+												<Input placeholder="0x1234" {...field} className='bg-zinc-100' />
 											</FormControl>
 											<FormMessage />
 										</FormItem>
 									)}
 								/>
+								
 							</div>
-							<Button className="w-full py-6 " type="submit">
-								asdasd
+							<FormField
+									control={form.control}
+									name="description"
+									render={({ field }) => (
+										<FormItem>
+											<FormLabel>Description</FormLabel>
+											<FormControl>
+												{/* <Input placeholder="write a description" {...field} /> */}
+												<Textarea placeholder="write a description" {...field} className='bg-zinc-100'/>
+											</FormControl>
+											<FormMessage />
+										</FormItem>
+									)}
+								/>	
+							<Button className="w-full py-6 bg-[#ff9632] text-black border border-black hover:bg-transparent" type="submit">
+								{isLoading ? 'Registering...' : "Register"}
 							</Button>
 						</form>
 					</Form>

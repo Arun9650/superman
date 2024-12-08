@@ -1,9 +1,17 @@
 'use client';
 
 import { BoxABI } from '@/common/abis/Box';
-import { BoxAddress } from '@/common/contracts';
+import { DaoABI } from '@/common/abis/Dao';
+import { BoxAddress, Dao } from '@/common/contracts';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+	Card,
+	CardContent,
+	CardDescription,
+	CardHeader,
+	CardTitle,
+} from '@/components/ui/card';
 import {
 	Dialog,
 	DialogContent,
@@ -13,11 +21,13 @@ import {
 	DialogTrigger,
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@radix-ui/react-label';
-import { Send } from 'lucide-react';
+import { ArrowRight, CheckCircle2, Code2, Send } from 'lucide-react';
 import Link from 'next/link';
-import { useState } from 'react';
-import { useReadContract } from 'wagmi';
+import { useEffect, useState } from 'react';
+import { Address, encodeFunctionData } from 'viem';
+import { useReadContract, useWriteContract } from 'wagmi';
 
 const tasks = [
 	{
@@ -64,14 +74,45 @@ const tasks = [
 	},
 ];
 
-export default function Home() {
-	const [isOpen, setIsOpen] = useState(false);
 
-	const a = useReadContract({
-		abi: BoxABI,
-		address: BoxAddress,
-		functionName: '',
-	});
+
+
+
+
+export default function Home({ params }: { params: { id: string } }) {
+	console.log("🚀 ~ Home ~ id:", params.id)
+	const [isOpen, setIsOpen] = useState(false);
+  const [organizations, setOrganizations] = useState([]);
+  console.log("🚀 ~ Home ~ organizations:", organizations)
+
+	// const a = useReadContract({
+	// 	abi: BoxABI,
+	// 	address: BoxAddress,
+	// 	functionName: '',
+	// });
+
+
+
+  useEffect(() => {
+      
+      async function fetchProposals() {
+        const response = await fetch(`/api/${params.id}`, {
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            
+          }
+        });
+        console.log("🚀 ~ fetchProposals ~ response:", response)
+        const data = await response.json();
+        setOrganizations(data);
+      }
+  
+      fetchProposals();
+  },[])
+
+
+	const { writeContractAsync } = useWriteContract();
 
 	const handleSubmit = async (event: React.FormEvent) => {
 		event.preventDefault();
@@ -82,86 +123,103 @@ export default function Home() {
 		//   []
 		// };
 
+		const data = encodeFunctionData({
+			abi: BoxABI,
+			functionName: 'store',
+			args: [BigInt(77)],
+		}) as Address;
 
+		const res = await writeContractAsync({
+			address: Dao,
+			abi: DaoABI,
+			functionName: 'propose',
+			args: [
+				['0x414789b2377691F53567ec23f9a30d122fA56234'],
+				[BigInt(0)],
+				[data as Address],
+				'abcsbhjmaadsdasdfsdasaasfadsfsdfddf',
+			],
+		});
 
 		console.log('Proposal submitted');
 		setIsOpen(false);
 	};
+  const Url = `http://w3s.link/ipfs/${organizations?.organizationData?.logo}`;
 	return (
-		<div className="container mx-auto py-6 mt-20">
-			<h1 className="text-3xl font-bold mb-6">Company Dashboard</h1>
-			<div className="grid grid-cols-1 md:grid-cols-5 gap-6">
-				<div className="md:col-span-2">
-					<Card className="h-full">
-						<CardHeader>
-							<CardTitle>Company Details</CardTitle>
-						</CardHeader>
-						<CardContent className="space-y-4">
-							<div className="flex justify-center">
+		<div className="container mx-auto px-10">
+			<div className="grid grid-cols-1 md:grid-cols-5 gap-6 mt-5 ">
+				<div className="md:col-span-2 border-r border-black">
+					<Card className="h-full border-none shadow-none">
+						<h1 className="text-3xl font-bold mb-4">{organizations?.organizationData?.name}</h1>
+						<CardContent className="space-y-4 p-0">
+							<div className="flex items-center justify-start ">
 								<img
 									alt="Company Logo"
-									className="h-20 w-20"
-									src="/placeholder.svg?height=80&width=80"
+									className="h-40 w-40 border rounded-lg border-black"
+									src={Url}
 								/>
 							</div>
 							<div className="space-y-2">
-								<Label>Wallet Address</Label>
+								<Label className="font-semibold text-[#000000]">
+									Wallet Address
+								</Label>
 								<p className="text-sm text-muted-foreground break-all">
-									0x1234567890123456789012345678901234567890
+								{organizations?.organizationData?.walletAddress}
 								</p>
 							</div>
 							<div className="space-y-2">
-								<Label>Contract Address</Label>
-								<p className="text-sm text-muted-foreground break-all">
-									0x0987654321098765432109876543210987654321
+								<Label className="font-semibold text-[#333333]">
+									Contract Address
+								</Label>
+								<p className="text-sm text-muted-foreground break-all ">
+								{organizations?.organizationData?.daocontract}
 								</p>
 							</div>
 							<div className="space-y-2">
 								<Label>Description</Label>
 								<p className="text-sm text-muted-foreground">
-									Our company specializes in blockchain solutions and
-									decentralized applications.
+									{organizations?.organizationData?.description}  
 								</p>
-							</div>
-							<div className="space-y-2">
-								<Label>Description</Label>
-								<button className="text-sm text-muted-foreground">
-									propose
-								</button>
 							</div>
 						</CardContent>
 					</Card>
 					<Dialog open={isOpen} onOpenChange={setIsOpen}>
 						<DialogTrigger asChild>
-							<Button className="w-full bg-orange-500 hover:bg-orange-600 text-white">
+							<Button className="w-[90%] bg-[#ff9632] hover:bg-white hover:text-black border border-black text-black h-12">
 								<Send className="w-4 h-4 mr-2" />
 								Submit Proposal
 							</Button>
 						</DialogTrigger>
 						<DialogContent className="sm:max-w-[425px]">
 							<DialogHeader>
-								<DialogTitle>Submit Proposal</DialogTitle>
+								<DialogTitle className="text-xl">Submit Proposal</DialogTitle>
 							</DialogHeader>
 							<form onSubmit={handleSubmit} className="space-y-4">
-								{/* <div className="space-y-2">
-              <Label htmlFor="title">Title</Label>
-              <Input id="title" placeholder="Enter proposal title" required />
-            </div> */}
 								<div className="space-y-2 flex flex-col">
-									<Label htmlFor="description">Description</Label>
-									<textarea
+									<Label
+										htmlFor="description"
+										className="text-[#000000] font-semibold"
+									>
+										Description
+									</Label>
+									<Textarea
 										id="description"
 										placeholder="Enter proposal description"
 										required
 									/>
 								</div>
 								<div className="space-y-2">
-									<Label htmlFor="other">Value</Label>
+									<Label
+										htmlFor="other"
+										className="text-[#333333] font-semibold"
+									>
+										Value
+									</Label>
 									<Input id="other" placeholder="Counter value" />
 								</div>
 								<Button
 									type="submit"
-									className="w-full bg-orange-500 hover:bg-orange-600 text-white"
+									className="w-full bg-[#ff9632] hover:bg-[#ff9632] text-black border border-black"
 								>
 									Submit
 								</Button>
@@ -169,10 +227,12 @@ export default function Home() {
 						</DialogContent>
 					</Dialog>
 				</div>
+
 				<div className="md:col-span-3">
 					<div className="space-y-4">
-						<h2 className="text-2xl font-bold">Tasks</h2>
-						<div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+						<h2 className="text-2xl font-bold">Proposals</h2>
+
+						<div className="grid gap-4 md:grid-cols-2">
 							{tasks.map((task, index) => (
 								<TaskCard key={index} {...task} />
 							))}
@@ -235,26 +295,44 @@ export function TaskCard({
 }: TaskCardProps) {
 	const [isModalOpen, setIsModalOpen] = useState(false);
 
-	// const statusColor = {
-	//   Todo: "bg-yellow-500",
-	//   "In Progress": "bg-blue-500",
-	//   Completed: "bg-green-500",
-	// }[status];
+	const statusColor = {
+		Todo: 'bg-yellow-500',
+		'In Progress': 'bg-blue-500',
+		Completed: 'bg-green-500',
+	}[status];
 
 	return (
 		<>
 			<Card
-				className="cursor-pointer hover:shadow-md transition-shadow"
 				onClick={() => setIsModalOpen(true)}
+				className="w-full max-w-md hover:shadow-lg transition-shadow flex flex-col justify-between border border-black"
 			>
-				<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-					<CardTitle className="text-sm font-medium">{title}</CardTitle>
-					{/* <Badge className={statusColor}>
-            </Badge> */}
-					{status}
+				<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 ">
+					<div className="flex items-center space-x-2">
+						<div className="w-8 h-8 rounded-full bg-orange-100 flex items-center justify-center">
+							<Code2 className="w-4 h-4 text-orange-600" />
+						</div>
+						<CardTitle className="text-xl font-semibold truncate max-w-56">
+							{title}
+						</CardTitle>
+					</div>
 				</CardHeader>
-				<CardContent>
-					<p className="text-xs text-muted-foreground">{description}</p>
+				<CardContent className="space-y-4 h-full flex flex-col justify-between">
+					<div className="flex flex-col gap-4">
+						<Badge
+							className={`${statusColor} whitespace-nowrap w-fit border border-black mt-2`}
+						>
+							<CheckCircle2 className="w-3 h-3 mr-1" />
+							{status}
+						</Badge>
+						<CardDescription className="text-[#333333]">
+							{description}
+						</CardDescription>
+					</div>
+					<Button variant="outline" className="w-full group border-black ">
+						View Details
+						<ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
+					</Button>
 				</CardContent>
 			</Card>
 			<TaskModal

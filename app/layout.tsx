@@ -6,6 +6,11 @@ import './globals.css';
 import Navbar from '@/components/Navbar';
 import ContextProvider from '@/components/ui/contex';
 import { headers } from 'next/headers'; // added
+import { Space_Grotesk } from 'next/font/google'
+
+
+const space = Space_Grotesk({ subsets: ['latin'] })
+
 
 const geistSans = localFont({
 	src: './fonts/GeistVF.woff',
@@ -32,7 +37,7 @@ export default function RootLayout({
 	return (
 		<html lang="en">
 			<body
-				className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+				className={`${space.className}`}
 			>
 				<ThemeProvider
 					attribute="class"
